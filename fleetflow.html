@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FleetFlow — Fleet & Logistics Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0c0f;
+  --surface: #111418;
+  --surface2: #181c22;
+  --border: #252b35;
+  --accent: #f0b429;
+  --accent2: #00d4aa;
+  --danger: #ff4757;
+  --warn: #ffa502;
+  --info: #3d9be9;
+  --text: #e8edf5;
+  --muted: #6b7a8d;
+  --success: #2ed573;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+h1,h2,h3,h4 { font-family: 'Syne', sans-serif; }
+code, .mono { font-family: 'IBM Plex Mono', monospace; }
+
+/* LAYOUT */
+#app { display: flex; height: 100vh; }
+#sidebar {
+  width: 220px; min-width: 220px; background: var(--surface);
+  border-right: 1px solid var(--border); display: flex; flex-direction: column;
+  padding: 0; z-index: 10;
+}
+#main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+
+/* SIDEBAR */
+.brand {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.brand-logo { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
+.brand-sub { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+.nav-section { padding: 12px 0; flex:1; }
+.nav-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; padding: 8px 20px 4px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 20px;
+  color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 500;
+  transition: all 0.15s; border-left: 3px solid transparent;
+}
+.nav-item:hover { color: var(--text); background: var(--surface2); }
+.nav-item.active { color: var(--accent); background: rgba(240,180,41,0.06); border-left-color: var(--accent); }
+.nav-icon { font-size: 15px; width: 18px; text-align: center; }
+.user-bar {
+  padding: 14px 20px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #000; flex-shrink: 0; }
+.user-name { font-size: 13px; font-weight: 600; }
+.user-role { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+/* PAGE HEADER */
+.page-header {
+  padding: 28px 32px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.page-title { font-size: 22px; font-weight: 800; }
+.page-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.page-content { padding: 28px 32px; flex: 1; }
+
+/* BUTTONS */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; transition: all 0.15s; font-family: 'IBM Plex Sans', sans-serif;
+}
+.btn-primary { background: var(--accent); color: #000; }
+.btn-primary:hover { background: #e0a420; }
+.btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--border); }
+.btn-danger { background: rgba(255,71,87,0.15); color: var(--danger); border: 1px solid rgba(255,71,87,0.3); }
+.btn-danger:hover { background: rgba(255,71,87,0.25); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-success { background: rgba(46,213,115,0.15); color: var(--success); border: 1px solid rgba(46,213,115,0.3); }
+
+/* PILLS/STATUS */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.pill-green { background: rgba(46,213,115,0.12); color: var(--success); }
+.pill-yellow { background: rgba(240,180,41,0.12); color: var(--accent); }
+.pill-red { background: rgba(255,71,87,0.12); color: var(--danger); }
+.pill-blue { background: rgba(61,155,233,0.12); color: var(--info); }
+.pill-gray { background: rgba(107,122,141,0.15); color: var(--muted); }
+.pill-teal { background: rgba(0,212,170,0.12); color: var(--accent2); }
+.pill::before { content: '●'; font-size: 7px; }
+
+/* CARDS */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+.card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.card-title { font-size: 14px; font-weight: 700; font-family: 'Syne', sans-serif; }
+.card-body { padding: 20px; }
+
+/* KPI GRID */
+.kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 28px; }
+.kpi-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 20px; position: relative; overflow: hidden;
+}
+.kpi-card::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--kpi-color, var(--accent));
+}
+.kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+.kpi-value { font-size: 32px; font-weight: 800; font-family: 'Syne', sans-serif; color: var(--kpi-color, var(--accent)); }
+.kpi-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* TABLES */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); background: var(--surface2); font-weight: 600; }
+.data-table td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(255,255,255,0.02); }
+.data-table .actions { display: flex; gap: 6px; }
+
+/* FORMS */
+.form-grid { display: grid; gap: 16px; }
+.form-grid-2 { grid-template-columns: 1fr 1fr; }
+.form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+.form-input, .form-select {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); padding: 9px 12px; border-radius: 6px;
+  font-size: 13px; font-family: 'IBM Plex Sans', sans-serif;
+  transition: border-color 0.15s;
+}
+.form-input:focus, .form-select:focus { outline: none; border-color: var(--accent); }
+.form-input::placeholder { color: var(--muted); }
+.form-select option { background: var(--surface2); }
+.form-error { font-size: 11px; color: var(--danger); }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center; z-index: 100;
+  backdrop-filter: blur(4px);
+}
+.modal {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  width: 520px; max-height: 90vh; overflow-y: auto;
+}
+.modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-size: 16px; font-weight: 700; font-family: 'Syne', sans-serif; }
+.modal-body { padding: 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+.close-btn { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; line-height: 1; }
+.close-btn:hover { color: var(--text); }
+
+/* LOGIN */
+#login-page {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+  background-image: radial-gradient(ellipse at 20% 50%, rgba(240,180,41,0.05) 0%, transparent 60%),
+                    radial-gradient(ellipse at 80% 20%, rgba(0,212,170,0.04) 0%, transparent 50%);
+}
+.login-box {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 48px 40px; width: 420px;
+}
+.login-logo { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
+.login-tagline { font-size: 13px; color: var(--muted); margin-bottom: 36px; }
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+/* ANALYTICS */
+.analytics-chart { background: var(--surface2); border-radius: 8px; padding: 20px; margin-top: 16px; }
+.bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.bar-label { width: 100px; font-size: 12px; color: var(--muted); text-align: right; }
+.bar-track { flex: 1; background: var(--border); border-radius: 4px; height: 20px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+.bar-val { width: 60px; font-size: 12px; font-family: 'IBM Plex Mono', monospace; color: var(--text); }
+
+/* TOGGLE */
+.toggle { position: relative; display: inline-flex; align-items: center; cursor: pointer; gap: 8px; }
+.toggle input { display: none; }
+.toggle-track {
+  width: 36px; height: 20px; background: var(--border); border-radius: 10px;
+  transition: background 0.2s; position: relative;
+}
+.toggle-track::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 14px; height: 14px; background: #fff; border-radius: 50%; transition: transform 0.2s;
+}
+.toggle input:checked + .toggle-track { background: var(--accent); }
+.toggle input:checked + .toggle-track::after { transform: translateX(16px); }
+.toggle-label { font-size: 12px; color: var(--muted); }
+
+/* TABS */
+.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+.tab { padding: 10px 20px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab:hover { color: var(--text); }
+
+/* NOTIFICATION */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 200;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 20px; display: flex; align-items: center; gap: 12px;
+  animation: slideUp 0.3s ease; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.toast-success { border-left: 3px solid var(--success); }
+.toast-error { border-left: 3px solid var(--danger); }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* MISC */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.mt-4 { margin-top: 16px; }
+.mt-6 { margin-top: 24px; }
+.flex { display: flex; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.text-muted { color: var(--muted); font-size: 12px; }
+.text-accent { color: var(--accent); }
+.text-danger { color: var(--danger); }
+.text-success { color: var(--success); }
+.empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-text { font-size: 14px; }
+.chip {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+}
+.page { display: none; flex-direction: column; flex: 1; }
+.page.active { display: flex; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="login-page">
+  <div class="login-box">
+    <div class="login-logo">⬡ FleetFlow</div>
+    <div class="login-tagline">Fleet & Logistics Management System</div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label">Email Address</label>
+      <input type="email" class="form-input" id="login-email" placeholder="manager@fleetflow.io" value="manager@fleetflow.io">
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label">Password</label>
+      <input type="password" class="form-input" id="login-pass" placeholder="••••••••" value="password">
+    </div>
+    <div class="form-group" style="margin-bottom:20px">
+      <label class="form-label">Role</label>
+      <select class="form-select" id="login-role">
+        <option value="Fleet Manager">Fleet Manager</option>
+        <option value="Dispatcher">Dispatcher</option>
+        <option value="Safety Officer">Safety Officer</option>
+        <option value="Financial Analyst">Financial Analyst</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="doLogin()">Sign In</button>
+    <div class="divider"></div>
+    <div style="text-align:center;font-size:12px;color:var(--muted)">Demo: any email/password works · <span style="color:var(--accent);cursor:pointer">Forgot Password?</span></div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="app" style="display:none">
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="brand">
+      <div class="brand-logo">⬡ FleetFlow</div>
+      <div class="brand-sub">Operations Hub</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Navigation</div>
+      <div class="nav-item active" onclick="navigate('dashboard')"><span class="nav-icon">◈</span> Command Center</div>
+      <div class="nav-item" onclick="navigate('vehicles')"><span class="nav-icon">🚛</span> Vehicle Registry</div>
+      <div class="nav-item" onclick="navigate('trips')"><span class="nav-icon">🗺</span> Trip Dispatcher</div>
+      <div class="nav-item" onclick="navigate('maintenance')"><span class="nav-icon">🔧</span> Maintenance Logs</div>
+      <div class="nav-item" onclick="navigate('fuel')"><span class="nav-icon">⛽</span> Fuel & Expenses</div>
+      <div class="nav-item" onclick="navigate('drivers')"><span class="nav-icon">👤</span> Driver Profiles</div>
+      <div class="nav-item" onclick="navigate('analytics')"><span class="nav-icon">📊</span> Analytics</div>
+    </div>
+    <div class="user-bar">
+      <div class="avatar" id="user-avatar">M</div>
+      <div>
+        <div class="user-name" id="user-name">Fleet Manager</div>
+        <div class="user-role" id="user-role">Manager</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Command Center</div>
+          <div class="page-sub">Real-time fleet overview — <span id="dash-date"></span></div>
+        </div>
+        <div class="flex gap-2">
+          <select class="form-select" style="font-size:12px;padding:6px 10px" onchange="filterDash(this.value)">
+            <option value="all">All Types</option>
+            <option value="Truck">Trucks</option>
+            <option value="Van">Vans</option>
+            <option value="Bike">Bikes</option>
+          </select>
+        </div>
+      </div>
+      <div class="page-content">
+        <div class="kpi-grid" id="kpi-grid"></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Fleet Status Overview</span></div>
+            <div class="card-body" id="dash-vehicles"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Recent Activity</span></div>
+            <div class="card-body" id="dash-activity"></div>
+          </div>
+        </div>
+        <div class="card mt-4">
+          <div class="card-header"><span class="card-title">Active Trips</span></div>
+          <div class="card-body" style="padding:0">
+            <table class="data-table" id="dash-trips-table"></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VEHICLES -->
+    <div class="page" id="page-vehicles">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Vehicle Registry</div>
+          <div class="page-sub">Asset management — CRUD operations for fleet vehicles</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('add-vehicle-modal')">+ Add Vehicle</button>
+      </div>
+      <div class="page-content">
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <table class="data-table" id="vehicles-table"></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRIPS -->
+    <div class="page" id="page-trips">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Trip Dispatcher</div>
+          <div class="page-sub">Create and manage cargo trips · Draft → Dispatched → Completed</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('add-trip-modal')">+ New Trip</button>
+      </div>
+      <div class="page-content">
+        <div class="tabs" id="trip-tabs">
+          <div class="tab active" onclick="filterTrips('all',this)">All Trips</div>
+          <div class="tab" onclick="filterTrips('Draft',this)">Draft</div>
+          <div class="tab" onclick="filterTrips('Dispatched',this)">Dispatched</div>
+          <div class="tab" onclick="filterTrips('Completed',this)">Completed</div>
+          <div class="tab" onclick="filterTrips('Cancelled',this)">Cancelled</div>
+        </div>
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <table class="data-table" id="trips-table"></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAINTENANCE -->
+    <div class="page" id="page-maintenance">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Maintenance & Service Logs</div>
+          <div class="page-sub">Preventative and reactive vehicle health tracking</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('add-maintenance-modal')">+ Log Service</button>
+      </div>
+      <div class="page-content">
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <table class="data-table" id="maintenance-table"></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FUEL & EXPENSES -->
+    <div class="page" id="page-fuel">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Fuel & Expense Logging</div>
+          <div class="page-sub">Financial tracking per asset — automated cost aggregation</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('add-fuel-modal')">+ Log Fuel</button>
+      </div>
+      <div class="page-content">
+        <div class="kpi-grid" style="grid-template-columns: repeat(3,1fr)" id="fuel-kpis"></div>
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <table class="data-table" id="fuel-table"></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DRIVERS -->
+    <div class="page" id="page-drivers">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Driver Performance & Safety</div>
+          <div class="page-sub">Compliance management, license tracking, and safety scores</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('add-driver-modal')">+ Add Driver</button>
+      </div>
+      <div class="page-content">
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <table class="data-table" id="drivers-table"></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div class="page" id="page-analytics">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Operational Analytics</div>
+          <div class="page-sub">Data-driven insights — ROI, efficiency, and performance metrics</div>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+          <button class="btn btn-ghost btn-sm" onclick="showToast('PDF report generated!','success')">⬇ Export PDF</button>
+        </div>
+      </div>
+      <div class="page-content">
+        <div class="kpi-grid" id="analytics-kpis"></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Fuel Efficiency (km/L) by Vehicle</span></div>
+            <div class="card-body" id="fuel-chart"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Vehicle ROI Analysis</span></div>
+            <div class="card-body" id="roi-chart"></div>
+          </div>
+        </div>
+        <div class="card mt-4">
+          <div class="card-header"><span class="card-title">Cost-per-km Breakdown</span></div>
+          <div class="card-body" id="cost-table"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODALS -->
+
+<!-- Add Vehicle -->
+<div class="modal-overlay" id="add-vehicle-modal" style="display:none" onclick="closeOnOverlay(event,'add-vehicle-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add New Vehicle</div>
+      <button class="close-btn" onclick="closeModal('add-vehicle-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">Vehicle Name/Model</label><input class="form-input" id="v-name" placeholder="e.g. Toyota Hiace Van-06"></div>
+        <div class="form-group"><label class="form-label">License Plate</label><input class="form-input" id="v-plate" placeholder="e.g. GJ-05-AB-1234"></div>
+        <div class="form-group"><label class="form-label">Vehicle Type</label>
+          <select class="form-select" id="v-type">
+            <option>Truck</option><option>Van</option><option>Bike</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Max Load Capacity (kg)</label><input class="form-input" id="v-cap" type="number" placeholder="e.g. 1000"></div>
+        <div class="form-group"><label class="form-label">Region</label><input class="form-input" id="v-region" placeholder="e.g. North Zone"></div>
+        <div class="form-group"><label class="form-label">Odometer (km)</label><input class="form-input" id="v-odo" type="number" placeholder="0"></div>
+        <div class="form-group"><label class="form-label">Acquisition Cost (₹)</label><input class="form-input" id="v-cost" type="number" placeholder="e.g. 800000"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('add-vehicle-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addVehicle()">Add Vehicle</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Trip -->
+<div class="modal-overlay" id="add-trip-modal" style="display:none" onclick="closeOnOverlay(event,'add-trip-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Create New Trip</div>
+      <button class="close-btn" onclick="closeModal('add-trip-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-grid form-grid-2">
+          <div class="form-group"><label class="form-label">Origin</label><input class="form-input" id="t-origin" placeholder="e.g. Mumbai Warehouse"></div>
+          <div class="form-group"><label class="form-label">Destination</label><input class="form-input" id="t-dest" placeholder="e.g. Pune Hub"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Select Vehicle (Available only)</label>
+          <select class="form-select" id="t-vehicle"></select>
+        </div>
+        <div class="form-group"><label class="form-label">Select Driver (Available only)</label>
+          <select class="form-select" id="t-driver"></select>
+        </div>
+        <div class="form-grid form-grid-2">
+          <div class="form-group"><label class="form-label">Cargo Weight (kg)</label><input class="form-input" id="t-cargo" type="number" placeholder="e.g. 450"><div class="form-error" id="cargo-error"></div></div>
+          <div class="form-group"><label class="form-label">Distance (km)</label><input class="form-input" id="t-dist" type="number" placeholder="e.g. 150"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Cargo Description</label><input class="form-input" id="t-desc" placeholder="e.g. Electronics shipment"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('add-trip-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addTrip()">Create Trip</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Maintenance -->
+<div class="modal-overlay" id="add-maintenance-modal" style="display:none" onclick="closeOnOverlay(event,'add-maintenance-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Log Maintenance Service</div>
+      <button class="close-btn" onclick="closeModal('add-maintenance-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Vehicle</label>
+          <select class="form-select" id="m-vehicle"></select>
+        </div>
+        <div class="form-group"><label class="form-label">Service Type</label>
+          <select class="form-select" id="m-type">
+            <option>Oil Change</option><option>Tyre Replacement</option><option>Engine Repair</option>
+            <option>Brake Service</option><option>AC Repair</option><option>Battery Replacement</option><option>General Inspection</option>
+          </select>
+        </div>
+        <div class="form-grid form-grid-2">
+          <div class="form-group"><label class="form-label">Cost (₹)</label><input class="form-input" id="m-cost" type="number" placeholder="e.g. 5000"></div>
+          <div class="form-group"><label class="form-label">Date</label><input class="form-input" id="m-date" type="date"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="m-notes" placeholder="e.g. Replaced with synthetic oil"></div>
+      </div>
+      <div style="margin-top:12px;padding:12px;background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);border-radius:8px;font-size:12px;color:var(--warn)">
+        ⚠ Adding a service log will automatically set vehicle status to <strong>In Shop</strong>, removing it from the dispatcher pool.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('add-maintenance-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addMaintenance()">Log Service</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Fuel -->
+<div class="modal-overlay" id="add-fuel-modal" style="display:none" onclick="closeOnOverlay(event,'add-fuel-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Log Fuel / Expense</div>
+      <button class="close-btn" onclick="closeModal('add-fuel-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Vehicle</label>
+          <select class="form-select" id="f-vehicle"></select>
+        </div>
+        <div class="form-grid form-grid-3">
+          <div class="form-group"><label class="form-label">Liters</label><input class="form-input" id="f-liters" type="number" placeholder="e.g. 40"></div>
+          <div class="form-group"><label class="form-label">Cost (₹)</label><input class="form-input" id="f-cost" type="number" placeholder="e.g. 3600"></div>
+          <div class="form-group"><label class="form-label">Date</label><input class="form-input" id="f-date" type="date"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Linked Trip (Optional)</label>
+          <select class="form-select" id="f-trip"></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('add-fuel-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addFuel()">Log Fuel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Driver -->
+<div class="modal-overlay" id="add-driver-modal" style="display:none" onclick="closeOnOverlay(event,'add-driver-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add New Driver</div>
+      <button class="close-btn" onclick="closeModal('add-driver-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="d-name" placeholder="e.g. Alex Kumar"></div>
+        <div class="form-group"><label class="form-label">License Number</label><input class="form-input" id="d-license" placeholder="e.g. MH-20230123456"></div>
+        <div class="form-group"><label class="form-label">License Category</label>
+          <select class="form-select" id="d-category">
+            <option>Truck</option><option>Van</option><option>Bike</option><option>All</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">License Expiry</label><input class="form-input" id="d-expiry" type="date"></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="d-phone" placeholder="e.g. +91 98765 43210"></div>
+        <div class="form-group"><label class="form-label">Safety Score (0-100)</label><input class="form-input" id="d-score" type="number" placeholder="85" min="0" max="100"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('add-driver-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addDriver()">Add Driver</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" style="display:none">
+  <span id="toast-icon">✓</span>
+  <span id="toast-msg"></span>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let currentUser = { name: 'Fleet Manager', role: 'Fleet Manager', initials: 'FM' };
+let currentPage = 'dashboard';
+let tripFilter = 'all';
+
+const vehicles = [
+  { id: 'V001', name: 'Tata 407 Van-01', plate: 'GJ-01-AB-0001', type: 'Van', capacity: 800, odometer: 45200, status: 'Available', region: 'North Zone', acquisitionCost: 850000, retired: false },
+  { id: 'V002', name: 'Ashok Leyland Truck-02', plate: 'GJ-01-CD-0002', type: 'Truck', capacity: 5000, odometer: 120400, status: 'On Trip', region: 'West Zone', acquisitionCost: 2500000, retired: false },
+  { id: 'V003', name: 'Honda Activa Bike-03', plate: 'GJ-05-EF-0003', type: 'Bike', capacity: 30, odometer: 12300, status: 'Available', region: 'South Zone', acquisitionCost: 80000, retired: false },
+  { id: 'V004', name: 'Mahindra Bolero Van-04', plate: 'GJ-07-GH-0004', type: 'Van', capacity: 1000, odometer: 67800, status: 'In Shop', region: 'East Zone', acquisitionCost: 1200000, retired: false },
+  { id: 'V005', name: 'Tata Ace Van-05', plate: 'GJ-09-IJ-0005', type: 'Van', capacity: 500, odometer: 33100, status: 'Available', region: 'North Zone', acquisitionCost: 600000, retired: false },
+  { id: 'V006', name: 'Eicher Truck-06', plate: 'GJ-11-KL-0006', type: 'Truck', capacity: 8000, odometer: 210000, status: 'On Trip', region: 'West Zone', acquisitionCost: 4000000, retired: false },
+];
+
+const drivers = [
+  { id: 'D001', name: 'Alex Kumar', license: 'GJ-20230001', category: 'Van', expiry: '2026-08-15', phone: '+91 98765 43210', status: 'On Trip', safetyScore: 92, tripsCompleted: 145, tripsTotal: 150 },
+  { id: 'D002', name: 'Ramesh Patel', license: 'GJ-20200045', category: 'Truck', expiry: '2025-03-01', phone: '+91 91234 56789', status: 'On Trip', safetyScore: 78, tripsCompleted: 320, tripsTotal: 345 },
+  { id: 'D003', name: 'Sunita Sharma', license: 'GJ-20220089', category: 'Bike', expiry: '2027-01-10', phone: '+91 99887 76655', status: 'Available', safetyScore: 95, tripsCompleted: 67, tripsTotal: 68 },
+  { id: 'D004', name: 'Vikram Singh', license: 'GJ-20210032', category: 'All', expiry: '2024-12-31', phone: '+91 88776 65544', status: 'Suspended', safetyScore: 55, tripsCompleted: 89, tripsTotal: 110 },
+  { id: 'D005', name: 'Priya Mehta', license: 'GJ-20230067', category: 'Van', expiry: '2027-06-20', phone: '+91 77665 54433', status: 'Available', safetyScore: 88, tripsCompleted: 44, tripsTotal: 46 },
+];
+
+const trips = [
+  { id: 'T001', origin: 'Ahmedabad WH', dest: 'Surat Hub', vehicleId: 'V002', driverId: 'D002', cargo: 4200, distance: 265, status: 'Dispatched', desc: 'FMCG goods', date: '2026-02-20', revenue: 18000 },
+  { id: 'T002', origin: 'Ahmedabad WH', dest: 'Vadodara DC', vehicleId: 'V001', driverId: 'D001', cargo: 750, distance: 110, status: 'Dispatched', desc: 'Pharma shipment', date: '2026-02-20', revenue: 7500 },
+  { id: 'T003', origin: 'Surat Hub', dest: 'Mumbai Port', vehicleId: 'V006', driverId: 'D002', cargo: 7000, distance: 280, status: 'Completed', desc: 'Industrial parts', date: '2026-02-18', revenue: 35000 },
+  { id: 'T004', origin: 'Pune DC', dest: 'Nashik WH', vehicleId: 'V005', driverId: 'D005', cargo: 400, distance: 210, status: 'Completed', desc: 'Electronics', date: '2026-02-17', revenue: 8500 },
+  { id: 'T005', origin: 'Mumbai Hub', dest: 'Thane DC', vehicleId: 'V003', driverId: 'D003', cargo: 25, distance: 30, status: 'Draft', desc: 'Last-mile parcels', date: '2026-02-21', revenue: 1200 },
+];
+
+const maintenanceLogs = [
+  { id: 'M001', vehicleId: 'V004', type: 'Engine Repair', cost: 18000, date: '2026-02-15', notes: 'Major overhaul needed', status: 'In Progress' },
+  { id: 'M002', vehicleId: 'V001', type: 'Oil Change', cost: 3500, date: '2026-02-10', notes: 'Synthetic oil 5W-30', status: 'Completed' },
+  { id: 'M003', vehicleId: 'V006', type: 'Tyre Replacement', cost: 22000, date: '2026-01-28', notes: 'All 6 tyres replaced', status: 'Completed' },
+];
+
+const fuelLogs = [
+  { id: 'F001', vehicleId: 'V002', liters: 80, cost: 8800, date: '2026-02-20', tripId: 'T001' },
+  { id: 'F002', vehicleId: 'V001', liters: 30, cost: 3300, date: '2026-02-20', tripId: 'T002' },
+  { id: 'F003', vehicleId: 'V006', liters: 120, cost: 13200, date: '2026-02-18', tripId: 'T003' },
+  { id: 'F004', vehicleId: 'V005', liters: 45, cost: 4950, date: '2026-02-17', tripId: 'T004' },
+  { id: 'F005', vehicleId: 'V003', liters: 3, cost: 275, date: '2026-02-21', tripId: 'T005' },
+];
+
+const activityLog = [
+  { time: '09:42', msg: 'Trip T001 dispatched — Ahmedabad → Surat', type: 'info' },
+  { time: '08:30', msg: 'V004 logged for Engine Repair — status: In Shop', type: 'warn' },
+  { time: '07:15', msg: 'Trip T003 marked Completed by D002', type: 'success' },
+  { time: 'Yesterday', msg: 'Driver Vikram Singh suspended (low safety score)', type: 'danger' },
+  { time: 'Yesterday', msg: 'Fuel logged: 120L for V006 (₹13,200)', type: 'info' },
+];
+
+let idCounters = { V: 7, D: 6, T: 6, M: 4, F: 6 };
+
+// ============================================================
+// LOGIN
+// ============================================================
+function doLogin() {
+  const email = document.getElementById('login-email').value;
+  const role = document.getElementById('login-role').value;
+  if (!email) return;
+  currentUser = { name: email.split('@')[0].replace(/\./g,' '), role, initials: role.substring(0,2).toUpperCase() };
+  document.getElementById('user-name').textContent = currentUser.name;
+  document.getElementById('user-role').textContent = currentUser.role;
+  document.getElementById('user-avatar').textContent = currentUser.initials;
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  renderAll();
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const nav = [...document.querySelectorAll('.nav-item')].find(n => n.getAttribute('onclick')?.includes(page));
+  if (nav) nav.classList.add('active');
+  currentPage = page;
+  renderPage(page);
+}
+
+function renderAll() {
+  renderPage('dashboard');
+}
+
+function renderPage(page) {
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'vehicles') renderVehicles();
+  if (page === 'trips') renderTrips();
+  if (page === 'maintenance') renderMaintenance();
+  if (page === 'fuel') renderFuel();
+  if (page === 'drivers') renderDrivers();
+  if (page === 'analytics') renderAnalytics();
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function getVehicle(id) { return vehicles.find(v => v.id === id); }
+function getDriver(id) { return drivers.find(d => d.id === id); }
+function statusPill(s) {
+  const map = { 'Available':'pill-green','On Trip':'pill-blue','In Shop':'pill-yellow','Retired':'pill-gray','On Duty':'pill-green','Off Duty':'pill-gray','Suspended':'pill-red','Draft':'pill-gray','Dispatched':'pill-blue','Completed':'pill-green','Cancelled':'pill-red','In Progress':'pill-yellow' };
+  return `<span class="pill ${map[s]||'pill-gray'}">${s}</span>`;
+}
+function isLicenseExpired(expiry) { return new Date(expiry) < new Date(); }
+function nextId(prefix) { return prefix + String(idCounters[prefix]++).padStart(3,'0'); }
+function today() { return new Date().toISOString().slice(0,10); }
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard(typeFilter='all') {
+  const vList = typeFilter === 'all' ? vehicles : vehicles.filter(v => v.type === typeFilter);
+  const active = vehicles.filter(v => v.status === 'On Trip').length;
+  const inShop = vehicles.filter(v => v.status === 'In Shop').length;
+  const available = vehicles.filter(v => v.status === 'Available').length;
+  const util = Math.round((active/(vehicles.length||1))*100);
+  const pending = trips.filter(t => t.status === 'Draft').length;
+
+  document.getElementById('kpi-grid').innerHTML = `
+    <div class="kpi-card" style="--kpi-color:var(--accent2)">
+      <div class="kpi-label">Active Fleet</div>
+      <div class="kpi-value" style="color:var(--accent2)">${active}</div>
+      <div class="kpi-sub">Vehicles currently On Trip</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:var(--warn)">
+      <div class="kpi-label">Maintenance Alerts</div>
+      <div class="kpi-value" style="color:var(--warn)">${inShop}</div>
+      <div class="kpi-sub">Vehicles In Shop</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:var(--accent)">
+      <div class="kpi-label">Utilization Rate</div>
+      <div class="kpi-value" style="color:var(--accent)">${util}%</div>
+      <div class="kpi-sub">${active} of ${vehicles.length} vehicles assigned</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:var(--info)">
+      <div class="kpi-label">Pending Cargo</div>
+      <div class="kpi-value" style="color:var(--info)">${pending}</div>
+      <div class="kpi-sub">Shipments awaiting dispatch</div>
+    </div>
+  `;
+
+  document.getElementById('dash-vehicles').innerHTML = vList.map(v => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:13px;font-weight:600">${v.name}</div>
+        <div style="font-size:11px;color:var(--muted)">${v.plate} · ${v.type}</div>
+      </div>
+      ${statusPill(v.status)}
+    </div>
+  `).join('') || '<div class="empty-state"><div class="empty-icon">🚛</div><div class="empty-text">No vehicles</div></div>';
+
+  document.getElementById('dash-activity').innerHTML = activityLog.map(a => {
+    const colors = { info:'var(--info)', warn:'var(--warn)', success:'var(--success)', danger:'var(--danger)' };
+    return `
+      <div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);align-items:flex-start">
+        <div style="width:3px;background:${colors[a.type]};border-radius:2px;align-self:stretch;flex-shrink:0"></div>
+        <div>
+          <div style="font-size:12px">${a.msg}</div>
+          <div style="font-size:11px;color:var(--muted)">${a.time}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const activeTrips = trips.filter(t => t.status === 'Dispatched');
+  document.getElementById('dash-trips-table').innerHTML = `
+    <thead><tr><th>Trip ID</th><th>Route</th><th>Driver</th><th>Vehicle</th><th>Cargo</th><th>Status</th></tr></thead>
+    <tbody>${activeTrips.map(t => {
+      const v = getVehicle(t.vehicleId); const d = getDriver(t.driverId);
+      return `<tr>
+        <td class="mono" style="font-size:12px;color:var(--muted)">${t.id}</td>
+        <td>${t.origin} → ${t.dest}</td>
+        <td>${d?.name||'—'}</td>
+        <td>${v?.name||'—'}</td>
+        <td>${t.cargo} kg</td>
+        <td>${statusPill(t.status)}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">No active trips</td></tr>'}</tbody>
+  `;
+}
+
+function filterDash(val) { renderDashboard(val); }
+
+// ============================================================
+// VEHICLES
+// ============================================================
+function renderVehicles() {
+  document.getElementById('vehicles-table').innerHTML = `
+    <thead><tr><th>ID</th><th>Vehicle</th><th>Type</th><th>Capacity</th><th>Odometer</th><th>Region</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${vehicles.map(v => `<tr>
+      <td class="mono" style="font-size:12px;color:var(--muted)">${v.id}</td>
+      <td><div style="font-weight:600;font-size:13px">${v.name}</div><div style="font-size:11px;color:var(--muted)">${v.plate}</div></td>
+      <td><span class="chip">${v.type}</span></td>
+      <td>${v.capacity.toLocaleString()} kg</td>
+      <td>${v.odometer.toLocaleString()} km</td>
+      <td>${v.region}</td>
+      <td>${statusPill(v.retired ? 'Retired' : v.status)}</td>
+      <td><div class="actions">
+        <button class="btn btn-ghost btn-sm" onclick="toggleRetired('${v.id}')">${v.retired ? '↩ Restore' : '⊘ Retire'}</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteVehicle('${v.id}')">✕</button>
+      </div></td>
+    </tr>`).join('')}</tbody>
+  `;
+}
+
+function toggleRetired(id) {
+  const v = getVehicle(id);
+  if (!v) return;
+  v.retired = !v.retired;
+  v.status = v.retired ? 'Retired' : 'Available';
+  renderVehicles();
+  showToast(`${v.name} ${v.retired ? 'retired' : 'restored'}`, v.retired ? 'warn' : 'success');
+}
+
+function deleteVehicle(id) {
+  const i = vehicles.findIndex(v => v.id === id);
+  if (i > -1) { vehicles.splice(i,1); renderVehicles(); showToast('Vehicle removed','success'); }
+}
+
+function addVehicle() {
+  const name = document.getElementById('v-name').value.trim();
+  const plate = document.getElementById('v-plate').value.trim();
+  const type = document.getElementById('v-type').value;
+  const cap = parseInt(document.getElementById('v-cap').value);
+  const region = document.getElementById('v-region').value.trim();
+  const odo = parseInt(document.getElementById('v-odo').value)||0;
+  const cost = parseInt(document.getElementById('v-cost').value)||0;
+  if (!name||!plate||!cap) return showToast('Fill required fields','error');
+  if (vehicles.find(v => v.plate === plate)) return showToast('Plate already exists','error');
+  vehicles.push({ id:'V'+String(idCounters.V++).padStart(3,'0'), name, plate, type, capacity:cap, odometer:odo, status:'Available', region:region||'General', acquisitionCost:cost, retired:false });
+  closeModal('add-vehicle-modal'); renderVehicles(); showToast('Vehicle added!','success');
+  ['v-name','v-plate','v-cap','v-region','v-odo','v-cost'].forEach(id => document.getElementById(id).value='');
+}
+
+// ============================================================
+// TRIPS
+// ============================================================
+function renderTrips() {
+  let list = trips;
+  if (tripFilter !== 'all') list = trips.filter(t => t.status === tripFilter);
+  document.getElementById('trips-table').innerHTML = `
+    <thead><tr><th>ID</th><th>Route</th><th>Driver</th><th>Vehicle</th><th>Cargo</th><th>Distance</th><th>Revenue</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${list.map(t => {
+      const v = getVehicle(t.vehicleId); const d = getDriver(t.driverId);
+      return `<tr>
+        <td class="mono" style="font-size:12px;color:var(--muted)">${t.id}</td>
+        <td><div style="font-weight:600;font-size:13px">${t.origin} → ${t.dest}</div><div style="font-size:11px;color:var(--muted)">${t.desc}</div></td>
+        <td>${d?.name||'—'}</td>
+        <td>${v?.name||'—'}</td>
+        <td>${t.cargo} kg</td>
+        <td>${t.distance} km</td>
+        <td style="color:var(--success)">₹${t.revenue?.toLocaleString()||'—'}</td>
+        <td>${statusPill(t.status)}</td>
+        <td><div class="actions">
+          ${t.status==='Draft'?`<button class="btn btn-ghost btn-sm" onclick="advanceTrip('${t.id}','Dispatched')">▶ Dispatch</button>`:''}
+          ${t.status==='Dispatched'?`<button class="btn btn-success btn-sm" onclick="advanceTrip('${t.id}','Completed')">✓ Complete</button>`:''}
+          ${['Draft','Dispatched'].includes(t.status)?`<button class="btn btn-danger btn-sm" onclick="advanceTrip('${t.id}','Cancelled')">✕ Cancel</button>`:''}
+        </div></td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">No trips found</td></tr>'}</tbody>
+  `;
+}
+
+function filterTrips(f,el) {
+  tripFilter = f;
+  document.querySelectorAll('#trip-tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderTrips();
+}
+
+function advanceTrip(id, newStatus) {
+  const t = trips.find(tr => tr.id === id);
+  if (!t) return;
+  const v = getVehicle(t.vehicleId); const d = getDriver(t.driverId);
+  t.status = newStatus;
+  if (newStatus === 'Dispatched') { if(v) v.status='On Trip'; if(d) d.status='On Trip'; }
+  if (newStatus === 'Completed' || newStatus === 'Cancelled') {
+    if(v && v.status==='On Trip') v.status='Available';
+    if(d && d.status==='On Trip') d.status='Available';
+    if(newStatus==='Completed' && v) v.odometer += t.distance;
+    activityLog.unshift({ time: 'Just now', msg: `Trip ${id} marked ${newStatus}`, type: newStatus==='Completed'?'success':'warn' });
+  }
+  renderTrips();
+  if (currentPage === 'dashboard') renderDashboard();
+  showToast(`Trip ${id} → ${newStatus}`, 'success');
+}
+
+function openTripModal() {
+  // populate vehicle dropdown
+  const avail = vehicles.filter(v => v.status === 'Available' && !v.retired);
+  document.getElementById('t-vehicle').innerHTML = avail.map(v => `<option value="${v.id}">${v.name} (${v.capacity}kg · ${v.type})</option>`).join('') || '<option value="">No available vehicles</option>';
+  // populate driver dropdown (available + valid license)
+  const drivAvail = drivers.filter(d => d.status === 'Available' && !isLicenseExpired(d.expiry));
+  document.getElementById('t-driver').innerHTML = drivAvail.map(d => `<option value="${d.id}">${d.name} [${d.category}]</option>`).join('') || '<option value="">No available drivers</option>';
+  openModal('add-trip-modal');
+}
+
+function addTrip() {
+  const origin = document.getElementById('t-origin').value.trim();
+  const dest = document.getElementById('t-dest').value.trim();
+  const vid = document.getElementById('t-vehicle').value;
+  const did = document.getElementById('t-driver').value;
+  const cargo = parseInt(document.getElementById('t-cargo').value);
+  const dist = parseInt(document.getElementById('t-dist').value)||0;
+  const desc = document.getElementById('t-desc').value.trim();
+  document.getElementById('cargo-error').textContent = '';
+  if (!origin||!dest||!vid||!did||!cargo) return showToast('Fill all required fields','error');
+  const v = getVehicle(vid);
+  if (cargo > v.capacity) {
+    document.getElementById('cargo-error').textContent = `❌ Cargo (${cargo}kg) exceeds vehicle capacity (${v.capacity}kg)!`;
+    return;
+  }
+  const d = getDriver(did);
+  if (isLicenseExpired(d.expiry)) return showToast('Driver license expired!','error');
+  const id = 'T' + String(idCounters.T++).padStart(3,'0');
+  trips.push({ id, origin, dest, vehicleId:vid, driverId:did, cargo, distance:dist, status:'Draft', desc, date:today(), revenue:Math.round(dist*35) });
+  activityLog.unshift({ time:'Just now', msg:`Trip ${id} created: ${origin} → ${dest}`, type:'info' });
+  closeModal('add-trip-modal'); renderTrips(); showToast('Trip created!','success');
+  ['t-origin','t-dest','t-cargo','t-dist','t-desc'].forEach(id => document.getElementById(id).value='');
+}
+
+// ============================================================
+// MAINTENANCE
+// ============================================================
+function renderMaintenance() {
+  document.getElementById('maintenance-table').innerHTML = `
+    <thead><tr><th>ID</th><th>Vehicle</th><th>Service Type</th><th>Cost</th><th>Date</th><th>Notes</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody>${maintenanceLogs.map(m => {
+      const v = getVehicle(m.vehicleId);
+      return `<tr>
+        <td class="mono" style="font-size:12px;color:var(--muted)">${m.id}</td>
+        <td>${v?.name||m.vehicleId}</td>
+        <td>${m.type}</td>
+        <td style="color:var(--warn)">₹${m.cost.toLocaleString()}</td>
+        <td>${m.date}</td>
+        <td style="font-size:12px;color:var(--muted)">${m.notes}</td>
+        <td>${statusPill(m.status)}</td>
+        <td>${m.status==='In Progress'?`<button class="btn btn-success btn-sm" onclick="completeMaintenance('${m.id}')">✓ Done</button>`:'—'}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  `;
+}
+
+function completeMaintenance(id) {
+  const m = maintenanceLogs.find(x => x.id === id);
+  if (!m) return;
+  m.status = 'Completed';
+  const v = getVehicle(m.vehicleId);
+  if (v && v.status === 'In Shop') { v.status = 'Available'; showToast(`${v.name} returned to Available`,'success'); }
+  renderMaintenance();
+}
+
+function openMaintenanceModal() {
+  document.getElementById('m-vehicle').innerHTML = vehicles.filter(v=>!v.retired).map(v => `<option value="${v.id}">${v.name}</option>`).join('');
+  document.getElementById('m-date').value = today();
+  openModal('add-maintenance-modal');
+}
+
+function addMaintenance() {
+  const vid = document.getElementById('m-vehicle').value;
+  const type = document.getElementById('m-type').value;
+  const cost = parseInt(document.getElementById('m-cost').value)||0;
+  const date = document.getElementById('m-date').value||today();
+  const notes = document.getElementById('m-notes').value.trim();
+  const id = 'M' + String(idCounters.M++).padStart(3,'0');
+  maintenanceLogs.push({ id, vehicleId:vid, type, cost, date, notes, status:'In Progress' });
+  const v = getVehicle(vid);
+  if (v) { v.status = 'In Shop'; }
+  activityLog.unshift({ time:'Just now', msg:`${v?.name||vid} sent to In Shop for ${type}`, type:'warn' });
+  closeModal('add-maintenance-modal'); renderMaintenance();
+  if (currentPage === 'dashboard') renderDashboard();
+  showToast(`Maintenance logged — ${v?.name||vid} → In Shop`,'success');
+  ['m-cost','m-notes'].forEach(id => document.getElementById(id).value='');
+}
+
+// ============================================================
+// FUEL
+// ============================================================
+function renderFuel() {
+  const totalFuel = fuelLogs.reduce((s,f)=>s+f.cost,0);
+  const totalMaint = maintenanceLogs.reduce((s,m)=>s+m.cost,0);
+  const totalOps = totalFuel + totalMaint;
+  document.getElementById('fuel-kpis').innerHTML = `
+    <div class="kpi-card" style="--kpi-color:var(--accent)"><div class="kpi-label">Total Fuel Cost</div><div class="kpi-value">₹${(totalFuel/1000).toFixed(1)}K</div><div class="kpi-sub">All vehicles</div></div>
+    <div class="kpi-card" style="--kpi-color:var(--warn)"><div class="kpi-label">Total Maintenance</div><div class="kpi-value">₹${(totalMaint/1000).toFixed(1)}K</div><div class="kpi-sub">All service logs</div></div>
+    <div class="kpi-card" style="--kpi-color:var(--danger)"><div class="kpi-label">Total Operational Cost</div><div class="kpi-value">₹${(totalOps/1000).toFixed(1)}K</div><div class="kpi-sub">Fuel + Maintenance</div></div>
+  `;
+  document.getElementById('fuel-table').innerHTML = `
+    <thead><tr><th>ID</th><th>Vehicle</th><th>Liters</th><th>Cost</th><th>Date</th><th>Linked Trip</th></tr></thead>
+    <tbody>${fuelLogs.map(f => {
+      const v = getVehicle(f.vehicleId);
+      return `<tr>
+        <td class="mono" style="font-size:12px;color:var(--muted)">${f.id}</td>
+        <td>${v?.name||f.vehicleId}</td>
+        <td>${f.liters} L</td>
+        <td style="color:var(--warn)">₹${f.cost.toLocaleString()}</td>
+        <td>${f.date}</td>
+        <td class="mono" style="font-size:12px">${f.tripId||'—'}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  `;
+}
+
+function openFuelModal() {
+  document.getElementById('f-vehicle').innerHTML = vehicles.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
+  document.getElementById('f-trip').innerHTML = '<option value="">None</option>' + trips.map(t => `<option value="${t.id}">${t.id}: ${t.origin}→${t.dest}</option>`).join('');
+  document.getElementById('f-date').value = today();
+  openModal('add-fuel-modal');
+}
+
+function addFuel() {
+  const vid = document.getElementById('f-vehicle').value;
+  const liters = parseFloat(document.getElementById('f-liters').value)||0;
+  const cost = parseFloat(document.getElementById('f-cost').value)||0;
+  const date = document.getElementById('f-date').value||today();
+  const tripId = document.getElementById('f-trip').value||null;
+  if (!vid||!liters||!cost) return showToast('Fill required fields','error');
+  fuelLogs.push({ id:'F'+String(idCounters.F++).padStart(3,'0'), vehicleId:vid, liters, cost, date, tripId });
+  closeModal('add-fuel-modal'); renderFuel(); showToast('Fuel logged!','success');
+}
+
+// ============================================================
+// DRIVERS
+// ============================================================
+function renderDrivers() {
+  document.getElementById('drivers-table').innerHTML = `
+    <thead><tr><th>ID</th><th>Driver</th><th>Category</th><th>License</th><th>Expiry</th><th>Safety Score</th><th>Completion Rate</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${drivers.map(d => {
+      const expired = isLicenseExpired(d.expiry);
+      const rate = Math.round((d.tripsCompleted/d.tripsTotal)*100);
+      const scoreColor = d.safetyScore >= 85 ? 'var(--success)' : d.safetyScore >= 65 ? 'var(--warn)' : 'var(--danger)';
+      return `<tr>
+        <td class="mono" style="font-size:12px;color:var(--muted)">${d.id}</td>
+        <td><div style="font-weight:600">${d.name}</div><div style="font-size:11px;color:var(--muted)">${d.phone}</div></td>
+        <td><span class="chip">${d.category}</span></td>
+        <td class="mono" style="font-size:12px">${d.license}</td>
+        <td style="color:${expired?'var(--danger)':'var(--text)'}">${d.expiry} ${expired?'<span style="font-size:10px;color:var(--danger)">⚠ EXPIRED</span>':''}</td>
+        <td><span style="font-weight:700;color:${scoreColor}">${d.safetyScore}</span><span style="font-size:11px;color:var(--muted)">/100</span></td>
+        <td>${rate}% <span style="font-size:11px;color:var(--muted)">(${d.tripsCompleted}/${d.tripsTotal})</span></td>
+        <td>${statusPill(d.status)}</td>
+        <td><div class="actions">
+          ${d.status!=='On Trip'?`<select class="form-select" style="font-size:11px;padding:4px 8px" onchange="changeDriverStatus('${d.id}',this.value)">
+            <option ${d.status==='Available'?'selected':''}>Available</option>
+            <option ${d.status==='Off Duty'?'selected':''}>Off Duty</option>
+            <option ${d.status==='Suspended'?'selected':''}>Suspended</option>
+          </select>`:'<span style="font-size:11px;color:var(--muted)">On Trip</span>'}
+          <button class="btn btn-danger btn-sm" onclick="deleteDriver('${d.id}')">✕</button>
+        </div></td>
+      </tr>`;
+    }).join('')}</tbody>
+  `;
+}
+
+function changeDriverStatus(id, status) {
+  const d = getDriver(id);
+  if (d) { d.status = status; renderDrivers(); showToast(`${d.name} → ${status}`,'success'); }
+}
+
+function deleteDriver(id) {
+  const i = drivers.findIndex(d => d.id === id);
+  if (i > -1) { drivers.splice(i,1); renderDrivers(); showToast('Driver removed','success'); }
+}
+
+function addDriver() {
+  const name = document.getElementById('d-name').value.trim();
+  const license = document.getElementById('d-license').value.trim();
+  const category = document.getElementById('d-category').value;
+  const expiry = document.getElementById('d-expiry').value;
+  const phone = document.getElementById('d-phone').value.trim();
+  const score = parseInt(document.getElementById('d-score').value)||85;
+  if (!name||!license||!expiry) return showToast('Fill required fields','error');
+  const expired = isLicenseExpired(expiry);
+  drivers.push({ id:'D'+String(idCounters.D++).padStart(3,'0'), name, license, category, expiry, phone, status:'Available', safetyScore:score, tripsCompleted:0, tripsTotal:0 });
+  if (expired) showToast(`⚠ ${name} added but license is expired!`,'warn');
+  else showToast(`Driver ${name} added!`,'success');
+  closeModal('add-driver-modal'); renderDrivers();
+  ['d-name','d-license','d-expiry','d-phone','d-score'].forEach(id => document.getElementById(id).value='');
+}
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+function renderAnalytics() {
+  const totalRevenue = trips.filter(t=>t.status==='Completed').reduce((s,t)=>s+(t.revenue||0),0);
+  const totalFuelCost = fuelLogs.reduce((s,f)=>s+f.cost,0);
+  const totalMaintCost = maintenanceLogs.reduce((s,m)=>s+m.cost,0);
+  const totalDist = trips.filter(t=>t.status==='Completed').reduce((s,t)=>s+t.distance,0);
+  const totalLiters = fuelLogs.reduce((s,f)=>s+f.liters,0);
+
+  document.getElementById('analytics-kpis').innerHTML = `
+    <div class="kpi-card" style="--kpi-color:var(--success)"><div class="kpi-label">Total Revenue</div><div class="kpi-value" style="color:var(--success)">₹${(totalRevenue/1000).toFixed(1)}K</div><div class="kpi-sub">Completed trips</div></div>
+    <div class="kpi-card" style="--kpi-color:var(--accent)"><div class="kpi-label">Fleet Fuel Efficiency</div><div class="kpi-value">${(totalDist/totalLiters||0).toFixed(1)}</div><div class="kpi-sub">km/L (fleet average)</div></div>
+    <div class="kpi-card" style="--kpi-color:var(--info)"><div class="kpi-label">Total Distance</div><div class="kpi-value">${totalDist.toLocaleString()}</div><div class="kpi-sub">km (completed trips)</div></div>
+    <div class="kpi-card" style="--kpi-color:var(--warn)"><div class="kpi-label">Net Profit</div><div class="kpi-value" style="color:${totalRevenue>totalFuelCost+totalMaintCost?'var(--success)':'var(--danger)'}">₹${((totalRevenue-totalFuelCost-totalMaintCost)/1000).toFixed(1)}K</div><div class="kpi-sub">Revenue − Ops Costs</div></div>
+  `;
+
+  // Fuel efficiency chart
+  const fuelByVehicle = {};
+  fuelLogs.forEach(f => { if(!fuelByVehicle[f.vehicleId]) fuelByVehicle[f.vehicleId]={liters:0,dist:0}; fuelByVehicle[f.vehicleId].liters+=f.liters; });
+  trips.filter(t=>t.status==='Completed').forEach(t => { if(fuelByVehicle[t.vehicleId]) fuelByVehicle[t.vehicleId].dist+=t.distance; });
+  const effData = Object.entries(fuelByVehicle).map(([id,d]) => ({ name: getVehicle(id)?.name?.split(' ').slice(-1)[0]||id, eff: d.liters>0?(d.dist/d.liters).toFixed(1):0 })).filter(d=>d.eff>0);
+  const maxEff = Math.max(...effData.map(d=>d.eff),1);
+  document.getElementById('fuel-chart').innerHTML = `<div class="analytics-chart">${effData.map(d=>`
+    <div class="bar-row">
+      <div class="bar-label">${d.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(d.eff/maxEff)*100}%;background:var(--accent2)"></div></div>
+      <div class="bar-val">${d.eff} km/L</div>
+    </div>`).join('')||'<div class="empty-state"><div class="empty-text">No data yet</div></div>'}</div>`;
+
+  // ROI Chart
+  const roiData = vehicles.map(v => {
+    const vFuel = fuelLogs.filter(f=>f.vehicleId===v.id).reduce((s,f)=>s+f.cost,0);
+    const vMaint = maintenanceLogs.filter(m=>m.vehicleId===v.id).reduce((s,m)=>s+m.cost,0);
+    const vRev = trips.filter(t=>t.vehicleId===v.id&&t.status==='Completed').reduce((s,t)=>s+(t.revenue||0),0);
+    const roi = v.acquisitionCost>0 ? (((vRev-(vFuel+vMaint))/v.acquisitionCost)*100).toFixed(1) : 0;
+    return { name: v.name.split(' ').slice(-1)[0], roi: parseFloat(roi) };
+  });
+  const maxRoi = Math.max(...roiData.map(d=>Math.abs(d.roi)),1);
+  document.getElementById('roi-chart').innerHTML = `<div class="analytics-chart">${roiData.map(d=>`
+    <div class="bar-row">
+      <div class="bar-label">${d.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(Math.abs(d.roi)/maxRoi)*100}%;background:${d.roi>=0?'var(--success)':'var(--danger)'}"></div></div>
+      <div class="bar-val" style="color:${d.roi>=0?'var(--success)':'var(--danger)'}">${d.roi}%</div>
+    </div>`).join('')}</div>`;
+
+  // Cost per km table
+  document.getElementById('cost-table').innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Vehicle</th><th>Total Distance</th><th>Fuel Cost</th><th>Maint Cost</th><th>Total Ops Cost</th><th>Cost/km</th></tr></thead>
+      <tbody>${vehicles.map(v => {
+        const dist = trips.filter(t=>t.vehicleId===v.id&&t.status==='Completed').reduce((s,t)=>s+t.distance,0);
+        const fuel = fuelLogs.filter(f=>f.vehicleId===v.id).reduce((s,f)=>s+f.cost,0);
+        const maint = maintenanceLogs.filter(m=>m.vehicleId===v.id).reduce((s,m)=>s+m.cost,0);
+        const ops = fuel+maint;
+        const cpk = dist>0?(ops/dist).toFixed(2):'—';
+        return `<tr>
+          <td style="font-weight:600">${v.name}</td>
+          <td>${dist.toLocaleString()} km</td>
+          <td style="color:var(--warn)">₹${fuel.toLocaleString()}</td>
+          <td style="color:var(--danger)">₹${maint.toLocaleString()}</td>
+          <td>₹${ops.toLocaleString()}</td>
+          <td style="font-weight:700;color:var(--accent)" class="mono">${cpk==='—'?'—':'₹'+cpk+'/km'}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>
+  `;
+}
+
+function exportCSV() {
+  const rows = [['Vehicle','Total Distance','Fuel Cost','Maint Cost','Total Ops Cost','Cost/km']];
+  vehicles.forEach(v => {
+    const dist = trips.filter(t=>t.vehicleId===v.id&&t.status==='Completed').reduce((s,t)=>s+t.distance,0);
+    const fuel = fuelLogs.filter(f=>f.vehicleId===v.id).reduce((s,f)=>s+f.cost,0);
+    const maint = maintenanceLogs.filter(m=>m.vehicleId===v.id).reduce((s,m)=>s+m.cost,0);
+    const ops = fuel+maint;
+    const cpk = dist>0?(ops/dist).toFixed(2):'N/A';
+    rows.push([v.name,dist,fuel,maint,ops,cpk]);
+  });
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download = 'fleetflow-analytics.csv';
+  a.click();
+  showToast('CSV exported!','success');
+}
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+function openModal(id) {
+  // Pre-populate dropdowns before opening
+  if (id==='add-trip-modal') { openTripModal(); return; }
+  if (id==='add-maintenance-modal') { openMaintenanceModal(); return; }
+  if (id==='add-fuel-modal') { openFuelModal(); return; }
+  document.getElementById(id).style.display = 'flex';
+}
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+function closeOnOverlay(e,id) { if(e.target.classList.contains('modal-overlay')) closeModal(id); }
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer;
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  document.getElementById('toast-icon').textContent = type==='success'?'✓':type==='error'?'✕':'⚠';
+  t.className = `toast toast-${type==='error'?'error':'success'}`;
+  t.style.display = 'flex';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.style.display='none'; },3000);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.getElementById('m-date') && (document.getElementById('m-date').value = today());
+document.getElementById('f-date') && (document.getElementById('f-date').value = today());
+</script>
+</body>
+</html>
