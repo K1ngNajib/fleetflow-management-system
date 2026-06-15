@@ -1,0 +1,13 @@
+/* =====================================================
+   NOTIFICATION CENTER MODULE
+   Generates centralized alerts for service dates, mileage,
+   overdue jobs, stock levels, and maintenance workflow updates.
+===================================================== */
+const Notifications={
+/** Create a notification and persist it offline. */
+async create(priority,title,message,module='System',ref=''){await Storage.put('notifications',{priority,title,message,module,ref,date:new Date().toISOString(),read:false});},
+/** Rebuild automatic alerts from vehicles, jobs, and inventory. */
+async generate(){const now=new Date();const vehicles=await Storage.all('vehicles');for(const v of vehicles){const days=Math.ceil((new Date(v.nextServiceDate)-now)/864e5);if([30,14,7,1].includes(days))await this.create(days<=7?'High':'Medium','Service Due',`${v.vehicleId} service due in ${days===1?'tomorrow':days+' days'}`,'Vehicles',v.vehicleId);if(Number(v.nextServiceMileage)-Number(v.mileage)<=1000)await this.create('High','Mileage Alert',`${v.vehicleId} has ${Number(v.nextServiceMileage)-Number(v.mileage)} km remaining before service.`,'Vehicles',v.vehicleId);if(days<0)await this.create('Critical','Overdue Service',`${v.vehicleId} is ${Math.abs(days)} days overdue for service.`,'Servicing',v.vehicleId);}for(const j of await Storage.all('maintenance')){if(j.status!=='Completed'&&new Date(j.scheduledDate)<now)await this.create('Critical','Overdue Job',`${j.jobNumber} is overdue.`,'Maintenance',j.jobNumber);}for(const p of await Storage.all('inventory')){if(Number(p.quantity)<=0)await this.create('Critical','Out of Stock',`${p.name} requires immediate procurement.`,'Inventory',p.partNumber);else if(Number(p.quantity)<=Number(p.minimum))await this.create('High','Low Stock',`${p.name} is below minimum quantity.`,'Inventory',p.partNumber);}},
+/** Render searchable notification center. */
+async render(){const list=(await Storage.all('notifications')).sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('content').innerHTML=`<div class="toolbar"><h3>Centralized Notification Center</h3><button class="btn btn-primary" onclick="Notifications.generate().then(()=>Notifications.render())">Regenerate Alerts</button></div><div class="notice-list">${list.map(n=>`<article class="notice ${esc(n.priority)}"><header><strong>${esc(n.title)}</strong><span class="pill ${esc(n.priority)}">${esc(n.priority)}</span></header><p>${esc(n.message)}</p><small>${new Date(n.date).toLocaleString()} • ${esc(n.module)} • ${esc(n.ref)}</small></article>`).join('')||'<div class="card">No notifications.</div>'}</div>`;}
+};

@@ -1,0 +1,6 @@
+/* =====================================================
+   NOTIFICATION STYLES
+   Visual priority markers for service due, mileage,
+   overdue, stock, and maintenance workflow alerts.
+===================================================== */
+.notice-list{display:grid;gap:10px}.notice{padding:12px;border-radius:12px;border:1px solid var(--line);background:#ffffff0b}.notice header{display:flex;justify-content:space-between;gap:12px}.notice p{color:var(--muted);margin:6px 0}.notice.Critical{border-color:var(--red)}.notice.High{border-color:var(--orange)}.notice.Medium{border-color:var(--blue)}.notice.Low{border-color:var(--ok)}

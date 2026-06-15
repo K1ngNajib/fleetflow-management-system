@@ -1,0 +1,6 @@
+/* =====================================================
+   FORM STYLES
+   Styles modal-free editor forms used by vehicles,
+   maintenance jobs, users, servicing, and inventory.
+===================================================== */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.form-grid label{display:grid;gap:6px;color:var(--muted);font-size:13px}.form-grid input,.form-grid select,.form-grid textarea{width:100%}.form-actions{display:flex;gap:10px;margin-top:14px}.inline-form{margin-bottom:18px}.inline-form h3{margin-top:0}.wide{grid-column:1/-1}

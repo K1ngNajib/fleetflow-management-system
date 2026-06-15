@@ -1,0 +1,6 @@
+/* =====================================================
+   TABLE STYLES
+   Responsive paginated data tables for large offline
+   IndexedDB-backed collections.
+===================================================== */
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:980px}th,td{padding:11px;border-bottom:1px solid var(--line);text-align:left;font-size:14px}th{position:sticky;top:0;background:#0d160d;color:#cfe7cf;cursor:pointer}tr:hover td{background:#ffffff08}.pagination{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:12px}.pagination span{color:var(--muted)}
