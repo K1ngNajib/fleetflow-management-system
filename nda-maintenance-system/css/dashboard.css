@@ -1,0 +1,6 @@
+/* =====================================================
+   DASHBOARD STYLES
+   Presentation for KPI cards, maintenance tracking center,
+   financial command summaries, and urgent alert panels.
+===================================================== */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:18px}.kpi{position:relative;overflow:hidden}.kpi:before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,var(--military),var(--red))}.kpi label{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:1px}.kpi strong{display:block;font-size:32px;margin-top:8px}.command-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}.metric-list{list-style:none;padding:0;margin:0}.metric-list li{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)}.metric-list li:last-child{border-bottom:0}.amount{color:var(--gold);font-weight:800}.alert-feed{max-height:360px;overflow:auto;display:grid;gap:8px}.alert-item{border-left:4px solid var(--orange);padding:10px;background:#ffffff0b;border-radius:8px}.alert-item.Critical{border-color:var(--red)}
